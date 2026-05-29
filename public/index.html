@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>智能代码审查助手</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .card-header h2 {
+      font-size: 1.4rem;
+      color: #333;
+    }
+
+    .icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .icon-code {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .icon-check {
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .icon-alert {
+      background: linear-gradient(135deg, #fc4a1a 0%, #f7b733 100%);
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      font-family: 'Fira Code', 'Monaco', monospace;
+      font-size: 14px;
+      resize: vertical;
+      transition: border-color 0.3s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .analysis-results {
+      margin-top: 20px;
+    }
+
+    .result-section {
+      margin-bottom: 20px;
+    }
+
+    .result-section h3 {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .issue-card {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-left: 4px solid;
+    }
+
+    .issue-critical { border-color: #dc3545; }
+    .issue-high { border-color: #fd7e14; }
+    .issue-medium { border-color: #ffc107; }
+    .issue-low { border-color: #28a745; }
+
+    .issue-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .issue-title {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .issue-severity {
+      font-size: 0.8rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      color: white;
+    }
+
+    .severity-critical { background: #dc3545; }
+    .severity-high { background: #fd7e14; }
+    .severity-medium { background: #ffc107; color: #333; }
+    .severity-low { background: #28a745; }
+
+    .issue-details {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .issue-code {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      margin-top: 8px;
+      overflow-x: auto;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    .stat-critical { color: #dc3545; }
+    .stat-high { color: #fd7e14; }
+    .stat-medium { color: #ffc107; }
+    .stat-low { color: #28a745; }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .summary-report {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .summary-report h3 {
+      margin-bottom: 15px;
+    }
+
+    .summary-report pre {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .tab-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s;
+    }
+
+    .tab.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .tab:not(.active) {
+      background: white;
+      color: #666;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🤖 智能代码审查助手</h1>
+      <p>基于 AI 的代码质量分析工具</p>
+    </header>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="icon icon-code">📝</div>
+        <h2>代码输入</h2>
+      </div>
+      <textarea id="codeInput" placeholder="请输入要审查的代码...&#10;&#10;例如：&#10;function calculateTotal(items) {&#10;  let total = 0;&#10;  for (let i = 0; i < items.length; i++) {&#10;    total += items[i].price;&#10;  }&#10;  return total;&#10;}"></textarea>
+      <button id="analyzeBtn">🚀 开始审查</button>
+    </div>
+
+    <div class="stats" id="statsContainer" style="display: none;">
+      <div class="stat-card">
+        <div class="stat-value stat-critical" id="statCritical">0</div>
+        <div class="stat-label">🔴 严重</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value stat-high" id="statHigh">0</div>
+        <div class="stat-label">🟠 高</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value stat-medium" id="statMedium">0</div>
+        <div class="stat-label">🟡 中</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value stat-low" id="statLow">0</div>
+        <div class="stat-label">🟢 低</div>
+      </div>
+    </div>
+
+    <div class="card" id="resultsCard" style="display: none;">
+      <div class="card-header">
+        <div class="icon icon-check">✅</div>
+        <h2>审查结果</h2>
+      </div>
+      
+      <div class="tab-bar">
+        <button class="tab active" data-tab="style">代码风格</button>
+        <button class="tab" data-tab="logic">逻辑缺陷</button>
+        <button class="tab" data-tab="performance">性能优化</button>
+        <button class="tab" data-tab="readability">可读性</button>
+      </div>
+
+      <div class="analysis-results">
+        <div id="styleResults" class="result-section"></div>
+        <div id="logicResults" class="result-section hidden"></div>
+        <div id="performanceResults" class="result-section hidden"></div>
+        <div id="readabilityResults" class="result-section hidden"></div>
+      </div>
+
+      <div class="summary-report" id="summaryReport" style="display: none;">
+        <h3>📊 审查总结</h3>
+        <pre id="summaryContent"></pre>
+      </div>
+    </div>
+
+    <div class="card" id="loadingCard" style="display: none;">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        <p>AI 正在分析代码，请稍候...</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const codeInput = document.getElementById('codeInput');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const resultsCard = document.getElementById('resultsCard');
+    const loadingCard = document.getElementById('loadingCard');
+    const statsContainer = document.getElementById('statsContainer');
+    const summaryReport = document.getElementById('summaryReport');
+    const summaryContent = document.getElementById('summaryContent');
+
+    const tabs = document.querySelectorAll('.tab');
+    const resultSections = {
+      style: document.getElementById('styleResults'),
+      logic: document.getElementById('logicResults'),
+      performance: document.getElementById('performanceResults'),
+      readability: document.getElementById('readabilityResults')
+    };
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        Object.keys(resultSections).forEach(key => {
+          resultSections[key].classList.add('hidden');
+        });
+        resultSections[tab.dataset.tab].classList.remove('hidden');
+      });
+    });
+
+    analyzeBtn.addEventListener('click', async () => {
+      const code = codeInput.value.trim();
+      if (!code) {
+        alert('请输入要审查的代码');
+        return;
+      }
+
+      analyzeBtn.disabled = true;
+      analyzeBtn.textContent = '分析中...';
+      resultsCard.style.display = 'none';
+      loadingCard.style.display = 'block';
+
+      try {
+        const response = await fetch('/api/reports/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, filename: 'test.js' })
+        });
+
+        const data = await response.json();
+        displayResults(data);
+      } catch (error) {
+        console.error('分析失败:', error);
+        alert('分析失败，请检查服务器是否正常运行');
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.textContent = '🚀 开始审查';
+        loadingCard.style.display = 'none';
+      }
+    });
+
+    function displayResults(data) {
+      statsContainer.style.display = 'grid';
+      resultsCard.style.display = 'block';
+
+      document.getElementById('statCritical').textContent = data.stats.critical || 0;
+      document.getElementById('statHigh').textContent = data.stats.high || 0;
+      document.getElementById('statMedium').textContent = data.stats.medium || 0;
+      document.getElementById('statLow').textContent = data.stats.low || 0;
+
+      const issuesByType = {
+        style: [],
+        logic: [],
+        performance: [],
+        readability: []
+      };
+
+      data.issues.forEach(issue => {
+        if (issuesByType[issue.type]) {
+          issuesByType[issue.type].push(issue);
+        }
+      });
+
+      Object.keys(issuesByType).forEach(type => {
+        const section = resultSections[type];
+        if (issuesByType[type].length === 0) {
+          section.innerHTML = '<p style="color: #28a745; text-align: center; padding: 20px;">✓ 未发现问题</p>';
+        } else {
+          section.innerHTML = issuesByType[type].map(issue => createIssueCard(issue)).join('');
+        }
+      });
+
+      if (data.summary) {
+        summaryReport.style.display = 'block';
+        summaryContent.textContent = data.summary;
+      } else {
+        summaryReport.style.display = 'none';
+      }
+
+      tabs[0].click();
+    }
+
+    function createIssueCard(issue) {
+      return `
+        <div class="issue-card issue-${issue.severity}">
+          <div class="issue-header">
+            <span class="issue-title">${issue.message}</span>
+            <span class="issue-severity severity-${issue.severity}">${issue.severity}</span>
+          </div>
+          <div class="issue-details">
+            <strong>文件:</strong> ${issue.file} | <strong>行号:</strong> ${issue.line}
+          </div>
+          ${issue.suggestion ? `<div class="issue-details"><strong>建议:</strong> ${issue.suggestion}</div>` : ''}
+          ${issue.codeSnippet ? `<div class="issue-code">${escapeHtml(issue.codeSnippet)}</div>` : ''}
+        </div>
+      `;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
