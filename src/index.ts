@@ -23,8 +23,13 @@ app.get('/health', (req, res) => {
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(config.port, () => {
-  console.log(`🚀 智能代码审查助手服务启动成功`);
-  console.log(`📍 服务地址: http://localhost:${config.port}`);
-  console.log(`🔗 API文档: http://localhost:${config.port}/api`);
-});
+// CI 模式支持
+if (process.argv.includes('--ci')) {
+  import('./ci').then(({ runCI }) => runCI());
+} else {
+  app.listen(config.port, () => {
+    console.log(`🚀 智能代码审查助手服务启动成功`);
+    console.log(`📍 服务地址: http://localhost:${config.port}`);
+    console.log(`🔗 API文档: http://localhost:${config.port}/api`);
+  });
+}
