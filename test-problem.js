@@ -1,6 +1,6 @@
 function calculate(arr) { 
   let total = 0; 
-  for (let i = 0; i <= arr.length; i++) { 
+  for (let i = 0; i < arr.length; i++) { 
     total += arr[i].value; 
   } 
   return total; 
