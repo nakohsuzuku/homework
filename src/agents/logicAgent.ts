@@ -158,7 +158,7 @@ export class LogicAgent {
             id: uuidv4(),
             file: filename,
             line: i + 1,
-            severity: 'medium',
+            severity: 'high',
             type: 'logic',
             message: '潜在的数组越界风险',
             suggestion: '检查循环条件，数组索引应使用 < 而不是 <=',

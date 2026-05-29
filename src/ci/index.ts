@@ -99,6 +99,11 @@ export async function runCI() {
 
     console.log(`✅ 审查完成！已发布评论到 PR #${prNumber}`);
 
+    if (criticalIssues.length > 0 || highIssues.length > 0) {
+      console.log(`❌ 发现 ${criticalIssues.length} 个严重问题和 ${highIssues.length} 个高优先级问题，CI失败`);
+      process.exit(1);
+    }
+
   } catch (error) {
     console.error('❌ 代码审查失败:', error);
     process.exit(1);
