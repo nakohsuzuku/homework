@@ -29,7 +29,7 @@ describe('LogicAgent', () => {
       const offByOneIssues = issues.filter(i => i.message.includes('数组越界'));
       expect(offByOneIssues.length).toBeGreaterThan(0);
       expect(offByOneIssues[0].line).toBe(3);
-      expect(offByOneIssues[0].severity).toBe('medium');
+      expect(offByOneIssues[0].severity).toBe('high');
     });
 
     it('should not detect issue when using < instead of <=', async () => {
