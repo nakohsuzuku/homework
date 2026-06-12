@@ -54,4 +54,5 @@ export const issueTypeLabels = {
   logic: '逻辑缺陷',
   performance: '性能问题',
   readability: '可读性',
+  security: '安全漏洞',
 };

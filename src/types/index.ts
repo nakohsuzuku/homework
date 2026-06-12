@@ -10,7 +10,7 @@ export interface ReviewIssue {
   line: number;
   column?: number;
   severity: 'critical' | 'high' | 'medium' | 'low';
-  type: 'style' | 'logic' | 'performance' | 'readability';
+  type: 'style' | 'logic' | 'performance' | 'readability' | 'security';
   message: string;
   suggestion: string;
   codeSnippet?: string;

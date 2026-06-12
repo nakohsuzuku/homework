@@ -3,3 +3,4 @@ export { LogicAgent } from './logicAgent';
 export { PerformanceAgent } from './performanceAgent';
 export { ReadabilityAgent } from './readabilityAgent';
 export { SummaryAgent } from './summaryAgent';
+export { SecurityAgent } from './securityAgent';

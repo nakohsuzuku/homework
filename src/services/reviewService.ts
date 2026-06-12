@@ -1,5 +1,5 @@
 import { CodeFile, ReviewIssue, RefactorSuggestion, ReviewReport, WebhookPayload } from '../types';
-import { StyleAgent, LogicAgent, PerformanceAgent, ReadabilityAgent, SummaryAgent } from '../agents';
+import { StyleAgent, LogicAgent, PerformanceAgent, ReadabilityAgent, SummaryAgent, SecurityAgent } from '../agents';
 import { fetchPRFiles, createPRComment, extractRepoInfo } from './githubService';
 import { fetchMRFiles, createMRComment } from './gitlabService';
 
@@ -9,6 +9,7 @@ export class ReviewService {
   private performanceAgent: PerformanceAgent;
   private readabilityAgent: ReadabilityAgent;
   private summaryAgent: SummaryAgent;
+  private securityAgent: SecurityAgent;
 
   constructor() {
     this.styleAgent = new StyleAgent();
@@ -16,6 +17,7 @@ export class ReviewService {
     this.performanceAgent = new PerformanceAgent();
     this.readabilityAgent = new ReadabilityAgent();
     this.summaryAgent = new SummaryAgent();
+    this.securityAgent = new SecurityAgent();
   }
 
   async processGitHubWebhook(payload: WebhookPayload): Promise<ReviewReport | null> {
@@ -87,7 +89,11 @@ export class ReviewService {
     const { issues: readabilityIssues, suggestions } = await this.readabilityAgent.analyze(files);
     allIssues.push(...readabilityIssues);
     allSuggestions.push(...suggestions);
-    console.log(`可读性检查完成: ${readabilityIssues.length} 个问题, ${suggestions.length} 个重构建议`);
+    console.log(`可读性检查完成：${readabilityIssues.length} 个问题，${suggestions.length} 个重构建议`);
+
+    const securityIssues = await this.securityAgent.analyze(files);
+    allIssues.push(...securityIssues);
+    console.log(`安全漏洞检测完成：${securityIssues.length} 个问题`);
 
     const report = await this.summaryAgent.generateReport(prId, repository, allIssues, allSuggestions);
     
